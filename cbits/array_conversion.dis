@@ -1,0 +1,105 @@
+
+dist/build/cbits/array_conversion.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <extract_int4_array>:
+   0:	8b 0f                	mov    (%rdi),%ecx
+   2:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
+   7:	0f c9                	bswap  %ecx
+   9:	83 f9 01             	cmp    $0x1,%ecx
+   c:	75 52                	jne    60 <extract_int4_array+0x60>
+   e:	8b 4f 08             	mov    0x8(%rdi),%ecx
+  11:	0f c9                	bswap  %ecx
+  13:	83 f9 17             	cmp    $0x17,%ecx
+  16:	75 48                	jne    60 <extract_int4_array+0x60>
+  18:	44 8b 57 0c          	mov    0xc(%rdi),%r10d
+  1c:	45 31 c0             	xor    %r8d,%r8d
+  1f:	48 83 c7 14          	add    $0x14,%rdi
+  23:	45 31 c9             	xor    %r9d,%r9d
+  26:	41 0f ca             	bswap  %r10d
+  29:	45 85 d2             	test   %r10d,%r10d
+  2c:	7e 2e                	jle    5c <extract_int4_array+0x5c>
+  2e:	66 90                	xchg   %ax,%ax
+  30:	8b 07                	mov    (%rdi),%eax
+  32:	48 89 f9             	mov    %rdi,%rcx
+  35:	0f c8                	bswap  %eax
+  37:	83 f8 ff             	cmp    $0xffffffff,%eax
+  3a:	74 13                	je     4f <extract_int4_array+0x4f>
+  3c:	8b 47 04             	mov    0x4(%rdi),%eax
+  3f:	49 63 f9             	movslq %r9d,%rdi
+  42:	48 83 c1 04          	add    $0x4,%rcx
+  46:	41 83 c1 01          	add    $0x1,%r9d
+  4a:	0f c8                	bswap  %eax
+  4c:	89 04 be             	mov    %eax,(%rsi,%rdi,4)
+  4f:	41 83 c0 01          	add    $0x1,%r8d
+  53:	48 8d 79 04          	lea    0x4(%rcx),%rdi
+  57:	45 39 c2             	cmp    %r8d,%r10d
+  5a:	75 d4                	jne    30 <extract_int4_array+0x30>
+  5c:	89 d0                	mov    %edx,%eax
+  5e:	c3                   	retq   
+  5f:	90                   	nop
+  60:	f3 c3                	repz retq 
+  62:	66 66 66 66 66 2e 0f 	data32 data32 data32 data32 nopw %cs:0x0(%rax,%rax,1)
+  69:	1f 84 00 00 00 00 00 
+
+0000000000000070 <extract_float_array>:
+  70:	8b 0f                	mov    (%rdi),%ecx
+  72:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
+  77:	0f c9                	bswap  %ecx
+  79:	83 f9 01             	cmp    $0x1,%ecx
+  7c:	0f 85 d6 00 00 00    	jne    158 <extract_float_array+0xe8>
+  82:	8b 4f 08             	mov    0x8(%rdi),%ecx
+  85:	0f c9                	bswap  %ecx
+  87:	81 f9 bc 02 00 00    	cmp    $0x2bc,%ecx
+  8d:	0f 85 c5 00 00 00    	jne    158 <extract_float_array+0xe8>
+  93:	44 8b 4f 0c          	mov    0xc(%rdi),%r9d
+  97:	48 83 c7 14          	add    $0x14,%rdi
+  9b:	41 0f c9             	bswap  %r9d
+  9e:	45 85 c9             	test   %r9d,%r9d
+  a1:	0f 8e aa 00 00 00    	jle    151 <extract_float_array+0xe1>
+  a7:	f2 0f 10 0d 00 00 00 	movsd  0x0(%rip),%xmm1        # af <extract_float_array+0x3f>
+  ae:	00 
+  af:	31 c0                	xor    %eax,%eax
+  b1:	45 31 c0             	xor    %r8d,%r8d
+  b4:	0f 1f 40 00          	nopl   0x0(%rax)
+  b8:	f3 0f 10 07          	movss  (%rdi),%xmm0
+  bc:	f3 0f 11 44 24 f4    	movss  %xmm0,-0xc(%rsp)
+  c2:	0f b6 4c 24 f7       	movzbl -0x9(%rsp),%ecx
+  c7:	88 4c 24 fc          	mov    %cl,-0x4(%rsp)
+  cb:	0f b6 4c 24 f6       	movzbl -0xa(%rsp),%ecx
+  d0:	88 4c 24 fd          	mov    %cl,-0x3(%rsp)
+  d4:	0f b6 4c 24 f5       	movzbl -0xb(%rsp),%ecx
+  d9:	88 4c 24 fe          	mov    %cl,-0x2(%rsp)
+  dd:	0f b6 4c 24 f4       	movzbl -0xc(%rsp),%ecx
+  e2:	88 4c 24 ff          	mov    %cl,-0x1(%rsp)
+  e6:	f3 0f 10 44 24 fc    	movss  -0x4(%rsp),%xmm0
+  ec:	f3 0f 2c c8          	cvttss2si %xmm0,%ecx
+  f0:	f2 0f 2a c1          	cvtsi2sd %ecx,%xmm0
+  f4:	66 0f 2e c1          	ucomisd %xmm1,%xmm0
+  f8:	7a 02                	jp     fc <extract_float_array+0x8c>
+  fa:	74 45                	je     141 <extract_float_array+0xd1>
+  fc:	f3 0f 10 47 04       	movss  0x4(%rdi),%xmm0
+ 101:	48 83 c7 04          	add    $0x4,%rdi
+ 105:	f3 0f 11 44 24 f8    	movss  %xmm0,-0x8(%rsp)
+ 10b:	0f b6 4c 24 fb       	movzbl -0x5(%rsp),%ecx
+ 110:	88 4c 24 fc          	mov    %cl,-0x4(%rsp)
+ 114:	0f b6 4c 24 fa       	movzbl -0x6(%rsp),%ecx
+ 119:	88 4c 24 fd          	mov    %cl,-0x3(%rsp)
+ 11d:	0f b6 4c 24 f9       	movzbl -0x7(%rsp),%ecx
+ 122:	88 4c 24 fe          	mov    %cl,-0x2(%rsp)
+ 126:	0f b6 4c 24 f8       	movzbl -0x8(%rsp),%ecx
+ 12b:	88 4c 24 ff          	mov    %cl,-0x1(%rsp)
+ 12f:	49 63 c8             	movslq %r8d,%rcx
+ 132:	41 83 c0 01          	add    $0x1,%r8d
+ 136:	f3 0f 10 44 24 fc    	movss  -0x4(%rsp),%xmm0
+ 13c:	f3 0f 11 04 8e       	movss  %xmm0,(%rsi,%rcx,4)
+ 141:	83 c0 01             	add    $0x1,%eax
+ 144:	48 83 c7 04          	add    $0x4,%rdi
+ 148:	41 39 c1             	cmp    %eax,%r9d
+ 14b:	0f 85 67 ff ff ff    	jne    b8 <extract_float_array+0x48>
+ 151:	89 d0                	mov    %edx,%eax
+ 153:	c3                   	retq   
+ 154:	0f 1f 40 00          	nopl   0x0(%rax)
+ 158:	f3 c3                	repz retq 

@@ -1,0 +1,96 @@
+name:                pgstream
+version:             0.1.0.0
+license:             AllRightsReserved
+copyright:           Copyright 2015 Elsen Inc.
+category:            Finance
+description:         Elsen Accelerated Computing Engine
+synopsis:            Elsen Accelerated Computing Engine
+license-file:        LICENSE
+author:              Elsen Inc.
+maintainer:          info@elsen.co
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+extra-source-files:  
+  cbits/array_conversion.h
+
+-- Compiler flags
+flag optimized
+  manual: True
+  default: True
+  description: Compile with optimizations enabled.
+
+flag j
+  manual: True
+  default: False
+  description: Compile in parallel.
+
+-- Executable
+library 
+  exposed-modules:
+    Database.PostgreSQL.Stream
+    Database.PostgreSQL.Stream.Parallel
+    Database.PostgreSQL.Stream.Connection
+    Database.PostgreSQL.Stream.Types
+    Database.PostgreSQL.Stream.FromRow
+    Database.PostgreSQL.Stream.QueryBuilder
+
+  build-depends:       
+    base                 >= 4.6   && <4.10,
+
+    -- Standard library
+    text                 >= 1.1   && <1.2,
+    bytestring           >= 0.10  && <0.11,
+    attoparsec           >= 0.12  && <0.13,
+    vector               >= 0.10  && <0.11,
+    uuid                 >= 1.3   && <1.4,
+    scientific           >= 0.3   && <0.4, 
+    stringsearch         >= 0.3   && <0.4,
+    time                 >= 1.4   && <1.6,
+    deepseq              >= 1.3   && <1.5,
+
+    -- Streaming
+    conduit              >= 1.2.4 && <1.3,
+    conduit-extra        >= 1.1   && <1.2,
+    resource-pool        >= 0.2   && <0.3,
+    blaze-builder        >= 0.4   && <0.5, 
+    resourcet            >= 1.1   && <1.2,
+
+    -- SQL
+    postgresql-libpq     >= 0.9   && <0.10,
+    postgresql-binary    >= 0.5   && <0.6,
+
+    -- Parallelism
+    async                >= 2.0   && <2.1,
+    stm                  >= 2.2   && <2.5,
+    parallel             >= 3.2   && <3.3,
+    stm-conduit          >= 2.5   && <2.6,
+    stm-chans            >= 2.0   && <3.1,
+
+    -- Text
+    template-haskell     >= 2.9   && <3.0,
+
+    -- Control flow
+    mtl                  >= 2.2   && <3.0,
+    transformers         >= 0.4   && <0.5
+
+    -- Testing
+    -- criterion            -any
+
+  if flag(j) && impl(ghc >= 7.8)
+    ghc-options: -j3
+
+  C-sources:
+    cbits/array_conversion.c
+
+  cc-options:         -std=c99 -O2 -fPIC
+  Include-dirs:       cbits
+  ghc-options:
+    -O2
+    -funbox-strict-fields
+    "-with-rtsopts=-N"
+    -rtsopts
+    -threaded 
+
+  default-language:    Haskell2010
+  hs-source-dirs:      src
