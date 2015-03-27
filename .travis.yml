@@ -1,0 +1,4 @@
+language: haskell
+notifications:
+  slack: elsen:bX3Mmy8sc838XE42j6PjjIj3
+  email: false
