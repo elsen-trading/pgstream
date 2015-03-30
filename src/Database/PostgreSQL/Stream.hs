@@ -24,6 +24,8 @@ module Database.PostgreSQL.Stream (
   connect_alt,
 
   sql,
+
+  fmtSQL,
   fmtQuery,
 
   module Database.PostgreSQL.Stream.Types

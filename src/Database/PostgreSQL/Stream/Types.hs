@@ -31,7 +31,7 @@ import Control.Exception
 
 -- | Literal SQL logic spliced in as a subexpression
 newtype SQL = SQLExpr { unSQL :: ByteString }
-  deriving (Eq, Ord, Show, IsString)
+  deriving (Eq, Ord, Show, IsString, Monoid)
 
 -- | Newtype for a singular result set or argument value.
 newtype Only a = Only { unOnly :: a }
@@ -40,7 +40,7 @@ newtype Only a = Only { unOnly :: a }
 -- | Literal SQL identifier (i.e. table field names), spliced into the SQL query
 -- unquoted.
 newtype Identifier = Identifier { unIdentifier :: ByteString }
-  deriving (Eq, Ord, Show, IsString)
+  deriving (Eq, Ord, Show, IsString, Monoid)
 
 -- | SQL Null type
 data Null = Null

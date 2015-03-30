@@ -8,7 +8,10 @@
 
 module Database.PostgreSQL.Stream.QueryBuilder (
    sql,
+
    fmtQuery,
+   fmtSQL,
+
    ToSQL(..),
    ToField(..),
 ) where
@@ -163,3 +166,6 @@ runFormatter args input = loop args 1 input
 
 fmtQuery :: ToSQL a => Query -> a -> ByteString
 fmtQuery q args = toSQL args (fromQuery q)
+
+fmtSQL :: ToSQL a => Query -> a -> SQL
+fmtSQL q args = SQLExpr $ toSQL args (fromQuery q)
