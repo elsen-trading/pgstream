@@ -212,8 +212,9 @@ calculateSize ty len =
     PQ.Oid 25   -> -1                 -- text
     PQ.Oid 2950 -> -1                 -- uuid
     PQ.Oid 1007 -> (len - 20) `div` 8 -- int4[]
+    PQ.Oid 1016 -> (len - 20) `div` 8 -- int8[]
     PQ.Oid 1021 -> (len - 20) `div` 8 -- float4[]
-    _ -> error "Not yet implemented"
+    _ -> error $ "Size not yet implemented" ++ (show ty)
 
 --    16   -> bool
 --    17   -> bytea

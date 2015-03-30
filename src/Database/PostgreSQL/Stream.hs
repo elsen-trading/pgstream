@@ -8,12 +8,16 @@ module Database.PostgreSQL.Stream (
   query,
   query_,
 
+  execute,
+  execute_,
+
   stream,
   stream_,
 
   PoolSettings(..),
   pgPool,
   withPgConnection,
+  PQ.Connection,
 
   ConnSettings(..),
   connect,
