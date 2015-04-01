@@ -25,7 +25,7 @@ struct array_int4 {
 };
 
 // float4[]
-struct array_numeric {
+struct array_float {
     int32_t ndim;
     int32_t _ign;
     Oid elemtype;
@@ -33,6 +33,17 @@ struct array_numeric {
     int32_t size;
     int32_t index;
     float data;
+};
+
+// float4[]
+struct array_double {
+    int32_t ndim;
+    int32_t _ign;
+    Oid elemtype;
+    
+    int32_t size;
+    int32_t index;
+    double data;
 };
 
 
@@ -85,7 +96,7 @@ int extract_int4_array (char *raw_array, int32_t *values, int size)
 
 int extract_float_array(char *raw_array, float *values, int size)
 {
-    struct array_numeric *array = (struct array_numeric *) raw_array;
+    struct array_float *array = (struct array_float *) raw_array;
     float *val = &(array->data);
     int32_t ival;
     
@@ -99,6 +110,34 @@ int extract_float_array(char *raw_array, float *values, int size)
     for (int i = 0; i < array_elements; ++i) {
         ival = swap(*val);
         if (ival != FLOAT_SEP) {
+            ++val;
+            values[n] = swap(*val);
+            n += 1;
+        }
+        ++val;
+    }
+    
+    return size;
+}
+
+#define DOUBLE_SEP 6.0e-45
+
+int extract_double_array(char *raw_array, double *values, int size)
+{
+    struct array_double *array = (struct array_double *) raw_array;
+    double *val = &(array->data);
+    int32_t ival;
+    
+    if (ntohl(array->ndim) != 1 || ntohl(array->elemtype) != FLOAT8OID) {
+        return -1;
+    }
+    int array_elements = ntohl(array->size);
+    
+    int n = 0;
+    val = &(array->data);
+    for (int i = 0; i < array_elements; ++i) {
+        ival = swap(*val);
+        if (ival != DOUBLE_SEP) {
             ++val;
             values[n] = swap(*val);
             n += 1;
