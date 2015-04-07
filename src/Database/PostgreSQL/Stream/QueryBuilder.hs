@@ -130,6 +130,15 @@ instance (ToField a, ToField b, ToField c, ToField d) => ToSQL (a,b,c,d) where
 instance (ToField a, ToField b, ToField c, ToField d, ToField e) => ToSQL (a,b,c,d,e) where
   toSQL (a,b,c,d,e) = runFormatter [toField a, toField b, toField c, toField d, toField e]
 
+instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f) => ToSQL (a,b,c,d,e,f) where
+  toSQL (a,b,c,d,e,f) = runFormatter [toField a, toField b, toField c, toField d, toField e, toField f]
+
+instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f, ToField g) => ToSQL (a,b,c,d,e,f,g) where
+  toSQL (a,b,c,d,e,f,g) = runFormatter [toField a, toField b, toField c, toField d, toField e, toField f, toField g]
+
+instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f, ToField g, ToField h) => ToSQL (a,b,c,d,e,f,g,h) where
+  toSQL (a,b,c,d,e,f,g,h) = runFormatter [toField a, toField b, toField c, toField d, toField e, toField f, toField g, toField h]
+
 -------------------------------------------------------------------------------
 -- Formatter
 -------------------------------------------------------------------------------
