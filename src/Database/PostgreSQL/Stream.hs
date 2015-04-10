@@ -28,6 +28,7 @@ module Database.PostgreSQL.Stream (
   fmtSQL,
   fmtQuery,
 
+  Database.PostgreSQL.Stream.version,
   module Database.PostgreSQL.Stream.Types
 ) where
 
@@ -56,6 +57,12 @@ import Control.Monad.Trans.Resource (ResourceT)
 
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
+
+import Data.Version (showVersion)
+import qualified Paths_pgstream as Paths
+
+version :: String
+version = showVersion Paths.version
 
 -------------------------------------------------------------------------------
 -- Query
