@@ -76,6 +76,12 @@ instance (FromField a, FromField b, FromField c, FromField d) => FromRow (a,b,c,
 instance (FromField a, FromField b, FromField c, FromField d, FromField e) => FromRow (a,b,c,d,e) where
     fromRow = (,,,,) <$> field <*> field <*> field <*> field <*> field
 
+instance (FromField a, FromField b, FromField c, FromField d, FromField e, FromField f) => FromRow (a,b,c,d,e,f) where
+    fromRow = (,,,,,) <$> field <*> field <*> field <*> field <*> field <*> field
+
+instance (FromField a, FromField b, FromField c, FromField d, FromField e, FromField f, FromField g) => FromRow (a,b,c,d,e,f,g) where
+    fromRow = (,,,,,,) <$> field <*> field <*> field <*> field <*> field <*> field <*> field
+
 -------------------------------------------------------------------------------
 -- FieldConversion
 -------------------------------------------------------------------------------
