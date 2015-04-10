@@ -84,6 +84,9 @@ instance ToField UUID where
 instance ToField Null where
   toField _ = Plain "null"
 
+instance (ToField a) => ToField (Only a) where
+  toField (Only a)  = toField a
+
 instance (ToField a) => ToField (Maybe a) where
   toField Nothing  = toField Null
   toField (Just a) = toField a

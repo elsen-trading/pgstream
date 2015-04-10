@@ -28,7 +28,7 @@ module Database.PostgreSQL.Stream (
   fmtSQL,
   fmtQuery,
 
-  Database.PostgreSQL.Stream.version,
+  --ver,
   module Database.PostgreSQL.Stream.Types
 ) where
 
@@ -61,8 +61,8 @@ import qualified Data.Conduit.List as CL
 import Data.Version (showVersion)
 import qualified Paths_pgstream as Paths
 
-version :: String
-version = showVersion Paths.version
+ver :: String
+ver = showVersion Paths.version
 
 -------------------------------------------------------------------------------
 -- Query
