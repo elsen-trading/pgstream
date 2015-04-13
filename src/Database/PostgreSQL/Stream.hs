@@ -18,6 +18,7 @@ module Database.PostgreSQL.Stream (
   pgPool,
   withPgConnection,
   PQ.Connection,
+  PQ.ExecStatus,
 
   ConnSettings(..),
   connect,
@@ -92,7 +93,7 @@ query_ conn q = do
 -- Execute
 -------------------------------------------------------------------------------
 
-execute :: (ToSQL q) => PQ.Connection -> Query -> q -> IO ()
+execute :: (ToSQL q) => PQ.Connection -> Query -> q -> IO PQ.ExecStatus
 execute conn q args = do
   -- Formatted query
   let query = fmtQuery q args
@@ -100,31 +101,35 @@ execute conn q args = do
   result <- PQ.execParams conn query [] PQ.Binary
   case result of
     Nothing -> throw (QueryError "Query execution error." q)
-    Just rc -> return ()
+    Just pqres -> do
+      status <- PQ.resultStatus pqres
+      return status
 
-execute_ :: PQ.Connection -> Query -> IO ()
+execute_ :: PQ.Connection -> Query -> IO PQ.ExecStatus
 execute_ conn q = do
   -- Execute the query
   result <- PQ.execParams conn (fromQuery q) [] PQ.Binary
   case result of
     Nothing -> throw (QueryError "Query execution error." q)
-    Just rc -> return ()
+    Just pqres -> do
+      status <- PQ.resultStatus pqres
+      return status
 
 -------------------------------------------------------------------------------
 -- Transaction
 -------------------------------------------------------------------------------
 
 data IsolationLevel
-   = DefaultIsolationLevel
-   | ReadCommitted
-   | RepeatableRead
-   | Serializable
-   deriving (Show, Eq, Ord, Enum, Bounded)
+  = DefaultIsolationLevel
+  | ReadCommitted
+  | RepeatableRead
+  | Serializable
+  deriving (Show, Eq, Ord, Enum, Bounded)
 
 data ReadWriteMode
-   = DefaultReadWriteMode
-   | ReadWrite
-   | ReadOnly
+  = DefaultReadWriteMode
+  | ReadWrite
+  | ReadOnly
    deriving (Show, Eq, Ord, Enum, Bounded)
 
 data TransactionMode = TransactionMode

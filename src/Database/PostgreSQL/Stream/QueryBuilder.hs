@@ -1,10 +1,10 @@
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Database.PostgreSQL.Stream.QueryBuilder (
    sql,
@@ -141,6 +141,9 @@ instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f, ToFi
 
 instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f, ToField g, ToField h) => ToSQL (a,b,c,d,e,f,g,h) where
   toSQL (a,b,c,d,e,f,g,h) = runFormatter [toField a, toField b, toField c, toField d, toField e, toField f, toField g, toField h]
+
+instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f, ToField g, ToField h, ToField i) => ToSQL (a,b,c,d,e,f,g,h,i) where
+  toSQL (a,b,c,d,e,f,g,h,i) = runFormatter [toField a, toField b, toField c, toField d, toField e, toField f, toField g, toField h, toField i]
 
 -------------------------------------------------------------------------------
 -- Formatter
