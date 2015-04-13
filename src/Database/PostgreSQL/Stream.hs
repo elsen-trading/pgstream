@@ -17,6 +17,8 @@ module Database.PostgreSQL.Stream (
   PoolSettings(..),
   pgPool,
   withPgConnection,
+
+  -- Rexports
   PQ.Connection,
   PQ.ExecStatus,
 
@@ -103,6 +105,7 @@ execute conn q args = do
     Nothing -> throw (QueryError "Query execution error." q)
     Just pqres -> do
       status <- PQ.resultStatus pqres
+      onError pqres q
       return status
 
 execute_ :: PQ.Connection -> Query -> IO PQ.ExecStatus
@@ -113,7 +116,19 @@ execute_ conn q = do
     Nothing -> throw (QueryError "Query execution error." q)
     Just pqres -> do
       status <- PQ.resultStatus pqres
+      onError pqres q
       return status
+
+onError :: PQ.Result -> Query -> IO ()
+onError pqres q = do
+  status <- PQ.resultStatus pqres
+  case status of
+    PQ.FatalError -> do
+      res <- PQ.resultErrorMessage pqres
+      case res of
+        Nothing -> return () -- should never happen
+        Just err -> throw (QueryError (B8.unpack err) q)
+    _ -> return ()
 
 -------------------------------------------------------------------------------
 -- Transaction
