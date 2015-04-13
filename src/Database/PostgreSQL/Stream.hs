@@ -137,11 +137,10 @@ data TransactionMode = TransactionMode
   , readWriteMode  :: !ReadWriteMode
   } deriving (Show, Eq)
 
-beginMode :: TransactionMode -> PQ.Connection -> IO ()
+beginMode :: TransactionMode -> PQ.Connection -> IO PQ.ExecStatus
 beginMode mode conn = do
   let begin_query = (Query (mconcat ["BEGIN", isolevel, readmode, ";"]))
-  rc <- execute_ conn begin_query
-  return ()
+  execute_ conn begin_query
 
   where
     isolevel =
@@ -157,15 +156,15 @@ beginMode mode conn = do
         ReadOnly  -> " READ ONLY"
 
 defaultTransactionMode :: TransactionMode
-defaultTransactionMode =  TransactionMode
-                            defaultIsolationLevel
-                            defaultReadWriteMode
+defaultTransactionMode = TransactionMode
+                           defaultIsolationLevel
+                           defaultReadWriteMode
 
-defaultIsolationLevel  :: IsolationLevel
-defaultIsolationLevel  =  DefaultIsolationLevel
+defaultIsolationLevel ::IsolationLevel
+defaultIsolationLevel = DefaultIsolationLevel
 
-defaultReadWriteMode   :: ReadWriteMode
-defaultReadWriteMode   =  DefaultReadWriteMode
+defaultReadWriteMode :: ReadWriteMode
+defaultReadWriteMode = DefaultReadWriteMode
 
 -- | Rollback a transaction.
 rollback :: PQ.Connection -> IO ()
@@ -176,7 +175,7 @@ commit :: PQ.Connection -> IO ()
 commit conn = execute_ conn "COMMIT" >> return ()
 
 -- | Begin a transaction.
-begin :: PQ.Connection -> IO ()
+begin :: PQ.Connection -> IO PQ.ExecStatus
 begin = beginMode defaultTransactionMode
 
 withTransactionMode :: TransactionMode -> PQ.Connection -> IO a -> IO a
