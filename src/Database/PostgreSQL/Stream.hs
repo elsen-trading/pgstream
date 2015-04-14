@@ -30,6 +30,7 @@ module Database.PostgreSQL.Stream (
 
   fmtSQL,
   fmtQuery,
+  printSQL,
 
   --ver,
   module Database.PostgreSQL.Stream.Types
@@ -118,6 +119,10 @@ execute_ conn q = do
       status <- PQ.resultStatus pqres
       onError pqres q
       return status
+
+-------------------------------------------------------------------------------
+-- Error Handling
+-------------------------------------------------------------------------------
 
 onError :: PQ.Result -> Query -> IO ()
 onError pqres q = do
@@ -244,3 +249,6 @@ stream conn q args n = do
 
 stream_ :: (FromRow r) => PQ.Connection -> Query -> Int -> C.Source (ResourceT IO) [r]
 stream_ conn q n = stream conn q () n
+
+printSQL :: Query -> IO ()
+printSQL (Query bs) = B8.putStrLn bs
