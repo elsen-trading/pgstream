@@ -20,7 +20,7 @@ module Database.PostgreSQL.Stream (
 
   -- Rexports
   PQ.Connection,
-  PQ.ExecStatus,
+  PQ.ExecStatus(..),
 
   ConnSettings(..),
   connect,
@@ -81,7 +81,10 @@ query conn q args = do
   result <- PQ.execParams conn query [] PQ.Binary
   case result of
     Nothing -> throw (QueryError "Query execution error." q)
-    Just rows -> parseRows q rows
+    Just pqres -> do
+      status <- PQ.resultStatus pqres
+      onError pqres q
+      parseRows q pqres
 
 -- Execute SQL query without arguments.
 query_ :: (FromRow r) => PQ.Connection -> Query -> IO [r]
@@ -90,7 +93,10 @@ query_ conn q = do
   result <- PQ.execParams conn (fromQuery q) [] PQ.Binary
   case result of
     Nothing -> throw (QueryError "Query execution error." q)
-    Just rows -> parseRows q rows
+    Just pqres -> do
+      status <- PQ.resultStatus pqres
+      onError pqres q
+      parseRows q pqres
 
 -------------------------------------------------------------------------------
 -- Execute
