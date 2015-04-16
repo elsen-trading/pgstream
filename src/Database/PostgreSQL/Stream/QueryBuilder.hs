@@ -1,19 +1,18 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Database.PostgreSQL.Stream.QueryBuilder (
+  -- ** Quasiquoter
    sql,
 
-   fmtQuery,
-   fmtSQL,
+  -- ** Query formatting
+  fmtQuery,
+  fmtSQL,
 
-   ToSQL(..),
-   ToField(..),
+  -- ** Typeclasses
+  ToSQL(..),
+  ToField(..),
 ) where
 
 import Database.PostgreSQL.Stream.Types
