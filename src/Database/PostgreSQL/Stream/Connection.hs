@@ -42,14 +42,17 @@ withPgConnection conn action = do
   withResource pool action
 
 data ConnSettings = ConnSettings
-  { _host    :: ByteString
-  , _dbname  :: ByteString
-  , _user    :: ByteString
-  } deriving (Eq, Ord, Show)
+  { _host     :: ByteString
+  , _dbname   :: ByteString
+  , _user     :: ByteString
+  , _password :: Maybe ByteString
+  } deriving (Eq, Ord, Show, Read)
 
 connect_alt :: ByteString -> IO PQ.Connection
 connect_alt = PQ.connectdb
 
 connect :: ConnSettings -> IO PQ.Connection
-connect (ConnSettings host db user) = PQ.connectdb $
+connect (ConnSettings host db user Nothing) = PQ.connectdb $
   mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user ]
+connect (ConnSettings host db user (Just password)) = PQ.connectdb $
+  mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user, "password" <> password ]
