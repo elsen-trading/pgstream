@@ -36,6 +36,9 @@ defaultPoolSettings = PoolSettings { _stripes = 1, _keepalive = 10, _affinity = 
 pgPool :: PQ.Connection -> IO (Pool PQ.Connection)
 pgPool conn = createPool (pure conn) PQ.finish 1 10 10
 
+pgPoolSettings :: PoolSettings -> PQ.Connection -> IO (Pool PQ.Connection)
+pgPoolSettings settings conn = createPool (pure conn) PQ.finish 1 10 10
+
 withPgConnection :: PQ.Connection -> (PQ.Connection -> IO b) -> IO b
 withPgConnection conn action = do
   pool <- pgPool conn
@@ -48,11 +51,19 @@ data ConnSettings = ConnSettings
   , _password :: Maybe ByteString
   } deriving (Eq, Ord, Show, Read)
 
-connect_alt :: ByteString -> IO PQ.Connection
-connect_alt = PQ.connectdb
+_connect :: ByteString -> IO (Either PQ.ConnStatus PQ.Connection)
+_connect connstr = do
+  conn <- PQ.connectdb connstr
+  rc <- PQ.status conn
+  case rc of
+    PQ.ConnectionOk -> return (Right conn)
+    _               -> return (Left rc)
 
-connect :: ConnSettings -> IO PQ.Connection
-connect (ConnSettings host db user Nothing) = PQ.connectdb $
+connect_alt :: ByteString -> IO (Either PQ.ConnStatus PQ.Connection)
+connect_alt = _connect
+
+connect :: ConnSettings -> IO (Either PQ.ConnStatus PQ.Connection)
+connect (ConnSettings host db user Nothing) = _connect $
   mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user ]
-connect (ConnSettings host db user (Just password)) = PQ.connectdb $
+connect (ConnSettings host db user (Just password)) =_connect $
   mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user, "password" <> password ]
