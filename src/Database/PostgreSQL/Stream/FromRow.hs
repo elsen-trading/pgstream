@@ -27,6 +27,9 @@ import Control.Monad.Trans.Reader
 import Data.Text (Text)
 import Data.UUID (UUID)
 import Data.Word (Word8)
+import Data.Time.Clock
+import Data.Fixed
+import Data.Time.Calendar
 import Data.Scientific (Scientific)
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal (toForeignPtr)
@@ -168,6 +171,16 @@ instance FromField ByteString where
 instance FromField Bool where
     fromField (ty, length, Just bs) = case PD.bool bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bool"
+
+-- date
+instance FromField Day where
+    fromField (ty, length, Just bs) = case PD.date bs of { Right x -> x }
+    fromField _ = throw $ ConversionError "Excepted non-null date"
+
+-- money
+instance FromField (Fixed E3) where
+    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> fromIntegral (x :: Int) }
+    fromField _ = throw $ ConversionError "Excepted non-null date"
 
 -- nullable
 instance FromField a => FromField (Maybe a) where
