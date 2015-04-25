@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Database.PostgreSQL.Stream.FromRow (
   FromRow(..),
@@ -24,19 +24,21 @@ import Control.Monad.Trans
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Reader
 
-import Data.Text (Text)
 import Data.UUID (UUID)
 import Data.Word (Word8)
 import Data.Time.Clock
-import Data.Time.Clock.POSIX
 import Data.Time.LocalTime
 import Data.Fixed
 import Data.Time.Calendar
 import Data.Scientific (Scientific)
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Internal (toForeignPtr)
 import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
+
+import Data.Text (Text)
+import qualified Data.Text.Lazy as TL
 
 import qualified PostgreSQLBinary.Decoder as PD
 import qualified Database.PostgreSQL.LibPQ as PQ
@@ -164,9 +166,19 @@ instance FromField Text where
       Right x -> x
     fromField _ = throw $ ConversionError "Excepted non-null text"
 
+instance FromField TL.Text where
+    fromField (ty, length, Just bs) = case PD.text bs of
+      Left x -> throw $ ConversionError "Malformed bytestring."
+      Right x -> TL.fromStrict x
+    fromField _ = throw $ ConversionError "Excepted non-null text"
+
 -- bytea
 instance FromField ByteString where
     fromField (ty, length, Just bs) = case PD.bytea bs of { Right x -> x }
+    fromField _ = throw $ ConversionError "Excepted non-null bytea"
+
+instance FromField BL.ByteString where
+    fromField (ty, length, Just bs) = case PD.bytea bs of { Right x -> BL.fromStrict x }
     fromField _ = throw $ ConversionError "Excepted non-null bytea"
 
 -- bool
@@ -206,7 +218,11 @@ instance FromField LocalTime where
 
 -- money
 instance FromField (Fixed E3) where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> fromIntegral (x :: Int) }
+    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
+    fromField _ = throw $ ConversionError "Excepted non-null money"
+
+instance FromField (Fixed E2) where
+    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
     fromField _ = throw $ ConversionError "Excepted non-null money"
 
 -- nullable
@@ -342,11 +358,11 @@ runRowParser parser rw = evalState (runReaderT (unRP parser) rw) 0
 
 fieldWith :: FieldParser a -> RowParser a
 fieldWith fieldP = RP $ do
-    r@Row{..} <- ask
+    Row{..} <- ask
     column <- lift get
     lift (put (column + 1))
     let
-        !ncols = PQ.nfields rowresult
+        -- !ncols = PQ.nfields rowresult
         !result = rowresult
         !typeOid = unsafeDupablePerformIO $ PQ.ftype result column
         !len = unsafeDupablePerformIO $ PQ.getlength result row column
@@ -378,7 +394,7 @@ parseRows q result = do
 
     PQ.TuplesOk -> do
         nrows <- liftIO $ PQ.ntuples result
-        ncols <- liftIO $ PQ.nfields result
+        --ncols <- liftIO $ PQ.nfields result
         xs <- rowLoop 0 (nrows-1) $ \row -> do
             let rw = Row row result
             {-coltype <- liftIO $ PQ.ftype result c-}
