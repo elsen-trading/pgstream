@@ -129,11 +129,13 @@ FromField/ToField typeclasses with the mapping given by.
 | uuid          | UUID          |
 | char          | Char          |
 | text          | Text          |
+| date          | Day           |
 | bytea         | ByteString    |
 | bool          | Bool          |
 | int4[]        | Vector Int32  |
 | float4[]      | Vector Float  |
-| nullable a    | Maybe a       |
+| money         | Fixed E3      |
+| null a        | Maybe a       |
 
 If the result set type is given as ``Maybe a`` then any missing value are
 manifest as ``Nothing``  values. And all concrete values are ``Just``.
