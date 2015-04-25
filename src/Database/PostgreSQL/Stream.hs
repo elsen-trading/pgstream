@@ -57,7 +57,7 @@ import Data.UUID(toASCIIBytes, toWords)
 import Control.Exception as E
 import Control.Monad.Trans
 import Control.Applicative
-import Control.Monad.Trans.Resource (ResourceT)
+import Control.Monad.Trans.Resource (ResourceT, MonadBaseControl)
 
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
@@ -223,12 +223,12 @@ newCursor = do
   let bshow = B8.pack . show
   return $ Identifier ("cursor" <> bshow a <> bshow b <> bshow c <> bshow d)
 
-stream :: (FromRow r, ToSQL a) =>
+stream :: (FromRow r, ToSQL a, MonadBaseControl IO m, MonadIO m) =>
      PQ.Connection                    -- ^ Connection
   -> Query                            -- ^ Query
   -> a                                -- ^ Query arguments
   -> Int                              -- ^ Batch size
-  -> C.Source (ResourceT IO) [r]      -- ^ Source conduit
+  -> C.Source m [r]      -- ^ Source conduit
 stream conn q args n = do
   -- Generate a new cursor from a uuid
   cursor_name <- liftIO $ newCursor
@@ -253,7 +253,7 @@ stream conn q args n = do
         [] -> return ()
         _  -> C.yield res >> loop conn q cursor_name n
 
-stream_ :: (FromRow r) => PQ.Connection -> Query -> Int -> C.Source (ResourceT IO) [r]
+stream_ :: (FromRow r, MonadBaseControl IO m, MonadIO m) => PQ.Connection -> Query -> Int -> C.Source m [r]
 stream_ conn q n = stream conn q () n
 
 printSQL :: Query -> IO ()
