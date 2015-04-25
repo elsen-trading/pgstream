@@ -224,10 +224,10 @@ newCursor = do
   return $ Identifier ("cursor" <> bshow a <> bshow b <> bshow c <> bshow d)
 
 stream :: (FromRow r, ToSQL a, MonadBaseControl IO m, MonadIO m) =>
-     PQ.Connection                    -- ^ Connection
-  -> Query                            -- ^ Query
-  -> a                                -- ^ Query arguments
-  -> Int                              -- ^ Batch size
+     PQ.Connection       -- ^ Connection
+  -> Query               -- ^ Query
+  -> a                   -- ^ Query arguments
+  -> Int                 -- ^ Batch size
   -> C.Source m [r]      -- ^ Source conduit
 stream conn q args n = do
   -- Generate a new cursor from a uuid
@@ -253,7 +253,11 @@ stream conn q args n = do
         [] -> return ()
         _  -> C.yield res >> loop conn q cursor_name n
 
-stream_ :: (FromRow r, MonadBaseControl IO m, MonadIO m) => PQ.Connection -> Query -> Int -> C.Source m [r]
+stream_ :: (FromRow r, MonadBaseControl IO m, MonadIO m) =>
+     PQ.Connection      -- ^ Connection
+  -> Query              -- ^ Query
+  -> Int                -- ^ Batch size
+  -> C.Source m [r]     -- ^ Source conduit
 stream_ conn q n = stream conn q () n
 
 printSQL :: Query -> IO ()
