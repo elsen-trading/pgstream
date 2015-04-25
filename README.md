@@ -144,12 +144,12 @@ forced by the type system to handle both cases.
 **Streaming**
 
 ```haskell
-stream :: (FromRow r, ToSQL a) =>
-     PQ.Connection                    -- ^ Connection
-  -> Query                            -- ^ Query
-  -> a                                -- ^ Query arguments
-  -> Int                              -- ^ Batch size
-  -> C.Source (ResourceT IO) [r]      -- ^ Source conduit
+stream :: (FromRow r, ToSQL a, MonadBaseControl IO m, MonadIO m) =>
+     PQ.Connection       -- ^ Connection
+  -> Query               -- ^ Query
+  -> a                   -- ^ Query arguments
+  -> Int                 -- ^ Batch size
+  -> C.Source m [r]      -- ^ Source conduit
 ```
 
 Parallel streams can be composed together Software Transactional Memory (STM)

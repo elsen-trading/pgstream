@@ -1,6 +1,16 @@
 PgStream
 ========
 
+
+0.1.0.1
+-------
+
+Adds:
+
+Generalizes ``stream`` and ``stream_`` interface to have
+[MonadBaseControl](https://hackage.haskell.org/package/resourcet-1.1.4.1/docs/Control-Monad-Trans-Resource.html)
+in context to generalize over hardcoded ``ResourceT IO``.
+
 0.1.0.0
 -------
 
