@@ -21,6 +21,7 @@ module Database.PostgreSQL.Stream (
   -- Rexports
   PQ.Connection,
   PQ.ExecStatus(..),
+  PQ.ConnStatus(..),
 
   ConnSettings(..),
   connect,
