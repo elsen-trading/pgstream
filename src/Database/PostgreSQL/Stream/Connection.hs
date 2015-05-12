@@ -66,4 +66,4 @@ connect :: ConnSettings -> IO (Either PQ.ConnStatus PQ.Connection)
 connect (ConnSettings host db user Nothing) = _connect $
   mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user ]
 connect (ConnSettings host db user (Just password)) =_connect $
-  mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user, "password" <> password ]
+  mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user, "password=" <> password ]
