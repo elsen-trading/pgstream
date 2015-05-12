@@ -1,6 +1,10 @@
 PgStream
 ========
 
+0.1.0.2
+-------
+
+Exposes connection status information for errors.
 
 0.1.0.1
 -------
