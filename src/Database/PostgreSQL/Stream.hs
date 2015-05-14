@@ -84,7 +84,8 @@ ver = showVersion Paths.version
 -- Query
 -------------------------------------------------------------------------------
 
--- Execute SQL query with arguments.
+-- | Execute SQL query with arguments.
+-- | Perform a SELECT or other SQL query that is expected to return results.
 query :: (FromRow r, ToSQL q) => PQ.Connection -> Query -> q -> IO [r]
 query conn q args = do
   -- Formatted query
@@ -98,7 +99,7 @@ query conn q args = do
       onError pqres q
       parseRows q pqres
 
--- Execute SQL query without arguments.
+-- | A version of query that does not perform query substitution.
 query_ :: (FromRow r) => PQ.Connection -> Query -> IO [r]
 query_ conn q = do
   -- Execute the query
@@ -114,6 +115,7 @@ query_ conn q = do
 -- Execute
 -------------------------------------------------------------------------------
 
+-- | Execute an INSERT, UPDATE, or other SQL query that is not expected to return results.
 execute :: (ToSQL q) => PQ.Connection -> Query -> q -> IO PQ.ExecStatus
 execute conn q args = do
   -- Formatted query
@@ -127,6 +129,7 @@ execute conn q args = do
       onError pqres q
       return status
 
+-- | A version of execute that does not perform query substitution.
 execute_ :: PQ.Connection -> Query -> IO PQ.ExecStatus
 execute_ conn q = do
   -- Execute the query
@@ -277,5 +280,6 @@ stream_ :: (FromRow r, MonadBaseControl IO m, MonadIO m) =>
   -> C.Source m [r]     -- ^ Source conduit
 stream_ conn q n = stream conn q () n
 
+-- | Print a SQL query to stdout.
 printSQL :: Query -> IO ()
 printSQL (Query bs) = B8.putStrLn bs

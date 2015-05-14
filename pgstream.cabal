@@ -3,8 +3,8 @@ version:             0.1.0.3
 license:             BSD3
 copyright:           Copyright 2015 Elsen Inc.
 category:            Finance
-description:         Elsen Accelerated Computing Engine
-synopsis:            Elsen Accelerated Computing Engine
+description:         Streaming queries from Postgres
+synopsis:            Streaming queries from Postgres
 license-file:        LICENSE
 author:              Elsen Inc.
 maintainer:          info@elsen.co
