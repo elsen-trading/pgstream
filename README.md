@@ -13,7 +13,7 @@ vectors or batched into serial or parallel
 [Conduit](https://hackage.haskell.org/package/conduit-1.2.4/docs/Data-Conduit.html)
 pipelines for stream composition.
 
-[![Build Status](https://magnum.travis-ci.com/elsen-trading/pgstream.svg?token=BpJfxk8kj7YxSxz44Sq9&branch=master)](https://magnum.travis-ci.com/elsen-trading/pgstream)
+[![Build Status](https://travis-ci.org/elsen-trading/pgstream.svg)](https://travis-ci.org/elsen-trading/pgstream)
 
 Installation
 ------------
