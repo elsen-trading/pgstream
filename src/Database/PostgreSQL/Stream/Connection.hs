@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Database.PostgreSQL.Stream.Connection (
@@ -6,6 +7,7 @@ module Database.PostgreSQL.Stream.Connection (
   defaultPoolSettings,
 
   pgPool,
+  pgPoolSettings,
   withPgConnection,
 
   connect,
@@ -37,7 +39,7 @@ pgPool :: PQ.Connection -> IO (Pool PQ.Connection)
 pgPool conn = createPool (pure conn) PQ.finish 1 10 10
 
 pgPoolSettings :: PoolSettings -> PQ.Connection -> IO (Pool PQ.Connection)
-pgPoolSettings settings conn = createPool (pure conn) PQ.finish 1 10 10
+pgPoolSettings PoolSettings{..} conn = createPool (pure conn) PQ.finish _stripes _keepalive _affinity
 
 withPgConnection :: PQ.Connection -> (PQ.Connection -> IO b) -> IO b
 withPgConnection conn action = do
@@ -66,4 +68,4 @@ connect :: ConnSettings -> IO (Either PQ.ConnStatus PQ.Connection)
 connect (ConnSettings host db user Nothing) = _connect $
   mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user ]
 connect (ConnSettings host db user (Just password)) =_connect $
-  mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user, "password=" <> password ]
+  mconcat [ "dbname=" <> db , " host=" <> host , " user=" <> user, " password=" <> password ]
