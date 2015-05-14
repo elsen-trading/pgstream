@@ -5,33 +5,41 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Database.PostgreSQL.Stream (
+  -- ** SQL query ( result set )
   query,
   query_,
 
+  -- ** SQL query ( no result )
   execute,
   execute_,
 
+  -- ** SQL query ( cursor )
   stream,
   stream_,
 
+  -- ** Transacations
   commit,
   rollback,
 
+  -- ** Database pool
   PoolSettings(..),
   pgPool,
   withPgConnection,
 
-  -- Rexports
+  -- ** LibPQ Rexports
   PQ.Connection,
   PQ.ExecStatus(..),
   PQ.ConnStatus(..),
 
+  -- ** Connection initialization
   ConnSettings(..),
   connect,
   connect_alt,
 
+  -- ** SQL quasiquoter
   sql,
 
+  -- ** SQL formatting
   fmtSQL,
   fmtQuery,
   printSQL,
