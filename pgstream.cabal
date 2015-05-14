@@ -1,6 +1,6 @@
 name:                pgstream
 version:             0.1.0.3
-license:             AllRightsReserved
+license:             BSD3
 copyright:           Copyright 2015 Elsen Inc.
 category:            Finance
 description:         Elsen Accelerated Computing Engine
@@ -13,6 +13,10 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 extra-source-files:  
   cbits/array_conversion.h
+
+Source-Repository head
+    Type: git
+    Location: git@github.com:elsen-trading/pgstream.git
 
 -- Compiler flags
 flag optimized
