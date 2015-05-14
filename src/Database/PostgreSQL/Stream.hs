@@ -14,6 +14,9 @@ module Database.PostgreSQL.Stream (
   stream,
   stream_,
 
+  commit,
+  rollback,
+
   PoolSettings(..),
   pgPool,
   withPgConnection,
