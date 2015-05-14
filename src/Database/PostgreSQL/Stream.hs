@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Database.PostgreSQL.Stream (
   -- ** SQL query ( result set )
@@ -254,9 +254,14 @@ stream conn q args n = do
 
   let fetch_cursor = [sql|FETCH FORWARD {1} FROM {2};|]
 
-  {-liftIO $ putStrLn $ fmtQuery fetch_cursor (n, cursor_name)-}
-  loop conn fetch_cursor cursor_name n
-  liftIO $ commit conn
+  res <- C.tryC (loop conn fetch_cursor cursor_name n)
+  case res of
+    Left (err :: QueryError) -> liftIO $ do
+      -- On SQL exception, rollback the transaction abort the conduit
+      rollback conn
+      throwIO err
+      -- On SQL success, commit
+    Right _ -> liftIO $ commit conn
 
   where
    loop conn q cursor_name n = do
