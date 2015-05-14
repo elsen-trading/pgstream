@@ -1,6 +1,11 @@
 PgStream
 ========
 
+0.1.0.3
+-------
+
+Exposed transaction primitives for rollback and commit.
+
 0.1.0.2
 -------
 
