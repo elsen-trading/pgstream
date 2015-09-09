@@ -105,14 +105,9 @@ class FromField a where
     fromField :: (PQ.Oid, Int, Maybe ByteString) -> a
 
 -- int2
-instance FromField Int8 where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> x }
-    fromField _ = throw $ ConversionError "Excepted non-null int2"
-
--- int4
 instance FromField Int16 where
     fromField (ty, length, Just bs) = case PD.int bs of { Right x -> x }
-    fromField _ = throw $ ConversionError "Excepted non-null int4"
+    fromField _ = throw $ ConversionError "Excepted non-null int2"
 
 -- int4
 instance FromField Int32 where
