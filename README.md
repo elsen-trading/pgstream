@@ -120,7 +120,7 @@ FromField/ToField typeclasses with the mapping given by.
 
 | Postgres      | Haskell       |
 | ------------- |---------------|
-| int2          | Int8          |
+| int2          | Int16         |
 | int4          | Int32         |
 | int8          | Int64         |
 | float4        | Float         |
