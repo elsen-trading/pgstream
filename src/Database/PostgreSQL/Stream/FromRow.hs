@@ -40,7 +40,7 @@ import qualified Data.Vector.Storable.Mutable as VM
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
 
-import qualified PostgreSQLBinary.Decoder as PD
+import qualified PostgreSQL.Binary.Decoder as PD
 import qualified Database.PostgreSQL.LibPQ as PQ
 
 import Unsafe.Coerce
@@ -106,118 +106,120 @@ class FromField a where
 
 -- int2
 instance FromField Int16 where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int2"
 
 -- int4
 instance FromField Int32 where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int4"
 
 -- int8
 instance FromField Int64 where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int8"
 
 -- int8
 instance FromField Int where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int4"
 
 -- float4
 instance FromField Float where
-    fromField (ty, length, Just bs) = case PD.float4 bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.float4 bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null float4"
 
 -- float8
 instance FromField Double where
-    fromField (ty, length, Just bs) = case PD.float8 bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.float8 bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null float8"
 
 -- integer
 instance FromField Integer where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null integer"
 
 -- numeric
 instance FromField Scientific where
-    fromField (ty, length, Just bs) = case PD.numeric bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.numeric bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null numeric"
 
 -- uuid
 instance FromField UUID where
-    fromField (ty, length, Just bs) = case PD.uuid bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.uuid bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null uuid"
 
 -- char
 instance FromField Char where
-    fromField (ty, length, Just bs) = case PD.char bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.char bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null char"
 
 -- text
 instance FromField Text where
-    fromField (ty, length, Just bs) = case PD.text bs of
+    fromField (ty, length, Just bs) = case PD.run PD.text_strict bs of
       Left x -> throw $ ConversionError "Malformed bytestring."
       Right x -> x
     fromField _ = throw $ ConversionError "Excepted non-null text"
 
 instance FromField TL.Text where
-    fromField (ty, length, Just bs) = case PD.text bs of
+    fromField (ty, length, Just bs) = case PD.run PD.text_lazy bs of
       Left x -> throw $ ConversionError "Malformed bytestring."
-      Right x -> TL.fromStrict x
+      Right x -> x
     fromField _ = throw $ ConversionError "Excepted non-null text"
 
 -- bytea
 instance FromField ByteString where
-    fromField (ty, length, Just bs) = case PD.bytea bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.bytea_strict bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bytea"
 
 instance FromField BL.ByteString where
-    fromField (ty, length, Just bs) = case PD.bytea bs of { Right x -> BL.fromStrict x }
+    fromField (ty, length, Just bs) = case PD.run PD.bytea_lazy bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bytea"
 
 -- bool
 instance FromField Bool where
-    fromField (ty, length, Just bs) = case PD.bool bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.bool bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bool"
 
 -- date
 instance FromField Day where
-    fromField (ty, length, Just bs) = case PD.date bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.date bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 -- time
+-- the following cases only work when integer_datetimes is set to 'on'
+-- TODO add a fallback case
 instance FromField TimeOfDay where
-    fromField (ty, length, Just bs) = case PD.time True bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.time_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance FromField (TimeOfDay, TimeZone) where
-    fromField (ty, length, Just bs) = case PD.timetz True bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.timetz_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance FromField UTCTime where
-    fromField (ty, length, Just bs) = case PD.timestamptz True bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.timestamptz_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance FromField NominalDiffTime where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> (fromIntegral (x :: Int)) }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> (fromIntegral (x :: Int)) }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance FromField DiffTime where
-    fromField (ty, length, Just bs) = case PD.interval True bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.interval_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance FromField LocalTime where
-    fromField (ty, length, Just bs) = case PD.timestamp True bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case PD.run PD.timestamp_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 -- money
 instance FromField (Fixed E3) where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
     fromField _ = throw $ ConversionError "Excepted non-null money"
 
 instance FromField (Fixed E2) where
-    fromField (ty, length, Just bs) = case PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
+    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
     fromField _ = throw $ ConversionError "Excepted non-null money"
 
 -- nullable
