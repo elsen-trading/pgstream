@@ -2,6 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Database.PostgreSQL.Stream.FromRow (
   FromRow(..),
@@ -42,6 +43,7 @@ import qualified Data.Text.Lazy as TL
 
 import qualified PostgreSQL.Binary.Decoder as PD
 import qualified Database.PostgreSQL.LibPQ as PQ
+import           Database.PostgreSQL.LibPQ (Oid(..))
 
 import Unsafe.Coerce
 import System.IO.Unsafe
@@ -130,8 +132,20 @@ instance FromField Float where
     fromField _ = throw $ ConversionError "Excepted non-null float4"
 
 -- float8
+-- TODO abstract out this type switching
 instance FromField Double where
-    fromField (ty, length, Just bs) = case PD.run PD.float8 bs of { Right x -> x }
+    fromField (Oid 701, length, Just bs)  = case PD.run PD.float8 bs of
+      Right x -> id x
+    fromField (Oid 700, length, Just bs)  = case PD.run PD.float4 bs of
+      Right x -> realToFrac x
+    fromField (Oid 20, length, Just bs)   = case PD.run PD.int bs of
+      Right (x :: Int64) -> fromIntegral x
+    fromField (Oid 21, length, Just bs)   = case PD.run PD.int bs of
+      Right (x :: Int16) -> fromIntegral x
+    fromField (Oid 23, length, Just bs)   = case PD.run PD.int bs of
+      Right (x :: Int32) -> fromIntegral x
+    fromField (Oid 1700, length, Just bs) = case PD.run PD.numeric bs of
+      Right x -> realToFrac x
     fromField _ = throw $ ConversionError "Excepted non-null float8"
 
 -- integer
