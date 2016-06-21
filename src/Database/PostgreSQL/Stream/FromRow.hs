@@ -356,7 +356,7 @@ runRowParser parser rw = evalState (runReaderT (unRP parser) rw) 0
 fieldWith :: FieldParser a -> RowParser a
 fieldWith fieldP = RP $ do
     Row{..} <- ask
-    column <- lift get
+    !column <- lift get
     lift (put (column + 1))
     let
         -- !ncols = PQ.nfields rowresult
