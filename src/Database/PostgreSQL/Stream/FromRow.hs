@@ -347,24 +347,36 @@ int4vector = extractor extract_int4_array
 field :: FromField a => RowParser a
 field = fieldWith fromField
 
-newtype RowParser a = RP { unRP :: ReaderT Row (State PQ.Column) a }
-   deriving ( Functor, Applicative, Monad )
+newtype RowParser a = RP { unRP :: (Row -> PQ.Column -> (PQ.Column, a)) }
+
+instance Functor RowParser where
+  fmap f (RP p) = RP (\r c -> let (c', a) = p r c in (c', f a))
+
+instance Applicative RowParser where
+  pure = return
+  (RP f) <*> (RP x) = RP $ \r c -> let
+    (!c',  f') = f r c
+    (!c'', x') = x r c'
+    in (c'', f' x')
+
+instance Monad RowParser where
+  return a = RP (\_ c -> (c, a))
+  (RP x) >>= f = RP $ \r c -> let
+    (!c', a) = x r c
+    RP y     = f a
+    in y r c'
 
 runRowParser :: RowParser a -> Row -> a
-runRowParser parser rw = evalState (runReaderT (unRP parser) rw) 0
+runRowParser (RP p) r = snd (p r 0)
 
 fieldWith :: FieldParser a -> RowParser a
-fieldWith fieldP = RP $ do
-    Row{..} <- ask
-    column <- lift get
-    lift (put (column + 1))
-    let
-        -- !ncols = PQ.nfields rowresult
-        !result = rowresult
-        !typeOid = unsafeDupablePerformIO $ PQ.ftype result column
-        !len = unsafeDupablePerformIO $ PQ.getlength result row column
-        !buffer = unsafeDupablePerformIO $ PQ.getvalue result row column
-    return $ fieldP (typeOid, calculateSize typeOid len, buffer)
+fieldWith fieldP = RP $ \(Row {..}) column ->
+  let
+    !result  = rowresult
+    !typeOid = unsafeDupablePerformIO $ PQ.ftype result column
+    !len     = unsafeDupablePerformIO $ PQ.getlength result row column
+    !buffer  = unsafeDupablePerformIO $ PQ.getvalue result row column
+  in (succ column, fieldP (typeOid, calculateSize typeOid len, buffer))
 
 -------------------------------------------------------------------------------
 -- Result Sets
