@@ -2,9 +2,11 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Database.PostgreSQL.Stream.FromRow (
   FromRow(..),
+  HasPQType(..),
   FromField(..),
   Row(..),
   field,
@@ -100,67 +102,107 @@ data Row = Row
 
 type FieldParser a = (PQ.Oid, Int, Maybe ByteString) -> a
 
-class FromField a where
-    -- Unchecked type conversion from raw postgres bytestring
+-- sloww check for correct type. also this is too strict,
+-- e.g. Integer should accept any kind of int.
+-- TODO: Add a package-level `strict' to enable/disable this check.
+checkTy :: HasPQType a => PQ.Oid -> a -> a
+checkTy oid a = if pqType a == oid then a
+  else throw $
+    Incompatible $
+         "Type error. Expected pq typeoid "
+      ++ show (pqType a)
+      ++ " but got "
+      ++ show oid
+      ++ "."
+
+class HasPQType a where
+  pqType :: a -> PQ.Oid
+
+class HasPQType a => FromField a where
+    -- conversion from raw postgres bytestring
     fromField :: (PQ.Oid, Int, Maybe ByteString) -> a
 
 -- int2
+instance HasPQType Int16 where
+  pqType _ = PQ.Oid 21 -- INT2OID
 instance FromField Int16 where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int2"
 
 -- int4
+instance HasPQType Int32 where
+  pqType _ = PQ.Oid 23 -- INT4OID
 instance FromField Int32 where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int4"
 
 -- int8
+instance HasPQType Int64 where
+  pqType _ = PQ.Oid 20 -- INT8OID
 instance FromField Int64 where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int8"
 
 -- int8
+instance HasPQType Int where
+  pqType _ = PQ.Oid 20 -- INT8OID
 instance FromField Int where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int4"
 
 -- float4
+instance HasPQType Float where
+  pqType _ = PQ.Oid 700 -- FLOAT4OID
 instance FromField Float where
     fromField (ty, length, Just bs) = case PD.run PD.float4 bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null float4"
 
 -- float8
+instance HasPQType Double where
+  pqType _ = PQ.Oid 701 -- FLOAT8OID
 instance FromField Double where
     fromField (ty, length, Just bs) = case PD.run PD.float8 bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null float8"
 
 -- integer
+instance HasPQType Integer where
+  pqType _ = PQ.Oid 20 -- INT8OID
 instance FromField Integer where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null integer"
 
 -- numeric
+instance HasPQType Scientific where
+  pqType _ = PQ.Oid 1700 -- NUMERICOID
 instance FromField Scientific where
     fromField (ty, length, Just bs) = case PD.run PD.numeric bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null numeric"
 
 -- uuid
+instance HasPQType UUID where
+  pqType _ = PQ.Oid 2950 -- UUIDOID
 instance FromField UUID where
     fromField (ty, length, Just bs) = case PD.run PD.uuid bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null uuid"
 
 -- char
+instance HasPQType Char where
+  pqType _ = PQ.Oid 1042 -- BPCHAROID
 instance FromField Char where
     fromField (ty, length, Just bs) = case PD.run PD.char bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null char"
 
 -- text
+instance HasPQType Text where
+  pqType _ = PQ.Oid 25 -- TEXTOID
 instance FromField Text where
     fromField (ty, length, Just bs) = case PD.run PD.text_strict bs of
       Left x -> throw $ ConversionError "Malformed bytestring."
       Right x -> x
     fromField _ = throw $ ConversionError "Excepted non-null text"
 
+instance HasPQType TL.Text where
+  pqType _ = PQ.Oid 25 -- TEXTOID
 instance FromField TL.Text where
     fromField (ty, length, Just bs) = case PD.run PD.text_lazy bs of
       Left x -> throw $ ConversionError "Malformed bytestring."
@@ -168,20 +210,28 @@ instance FromField TL.Text where
     fromField _ = throw $ ConversionError "Excepted non-null text"
 
 -- bytea
+instance HasPQType ByteString where
+  pqType _ = PQ.Oid 17 -- BYTEAOID
 instance FromField ByteString where
     fromField (ty, length, Just bs) = case PD.run PD.bytea_strict bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bytea"
 
+instance HasPQType BL.ByteString where
+  pqType _ = PQ.Oid 17 -- BYTEAOID
 instance FromField BL.ByteString where
     fromField (ty, length, Just bs) = case PD.run PD.bytea_lazy bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bytea"
 
 -- bool
+instance HasPQType Bool where
+  pqType _ = PQ.Oid 16 -- BOOLOID
 instance FromField Bool where
     fromField (ty, length, Just bs) = case PD.run PD.bool bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bool"
 
 -- date
+instance HasPQType Day where
+  pqType _ = PQ.Oid 1082 -- DATEOID
 instance FromField Day where
     fromField (ty, length, Just bs) = case PD.run PD.date bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
@@ -189,50 +239,72 @@ instance FromField Day where
 -- time
 -- the following cases only work when integer_datetimes is set to 'on'
 -- TODO add a fallback case
+instance HasPQType TimeOfDay where
+  pqType _ = PQ.Oid 1083 -- TIMEOID
 instance FromField TimeOfDay where
     fromField (ty, length, Just bs) = case PD.run PD.time_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
+instance HasPQType (TimeOfDay, TimeZone) where
+  pqType _ = PQ.Oid 1266 -- TIMETZOID
 instance FromField (TimeOfDay, TimeZone) where
     fromField (ty, length, Just bs) = case PD.run PD.timetz_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
+instance HasPQType UTCTime where
+  pqType _ = PQ.Oid 1184 -- TIMESTAMPTZOID
 instance FromField UTCTime where
     fromField (ty, length, Just bs) = case PD.run PD.timestamptz_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
+instance HasPQType NominalDiffTime where
+  pqType _ = PQ.Oid 20 -- INT8OID
 instance FromField NominalDiffTime where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> (fromIntegral (x :: Int)) }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
+instance HasPQType DiffTime where
+  pqType _ = PQ.Oid 1186 -- INTERVALOID
 instance FromField DiffTime where
     fromField (ty, length, Just bs) = case PD.run PD.interval_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
+instance HasPQType LocalTime where
+  pqType _ = PQ.Oid 1114 -- TIMESTAMPOID
 instance FromField LocalTime where
     fromField (ty, length, Just bs) = case PD.run PD.timestamp_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 -- money
+instance HasPQType (Fixed E3) where
+  pqType _ = PQ.Oid 20 -- INT8OID
 instance FromField (Fixed E3) where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
     fromField _ = throw $ ConversionError "Excepted non-null money"
 
+instance HasPQType (Fixed E2) where
+  pqType _ = PQ.Oid 20 -- INT8OID
 instance FromField (Fixed E2) where
     fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
     fromField _ = throw $ ConversionError "Excepted non-null money"
 
 -- nullable
+instance HasPQType a => HasPQType (Maybe a) where
+  pqType (x :: Maybe a) = pqType (undefined :: a)
 instance FromField a => FromField (Maybe a) where
     fromField (_, _, Nothing) = Nothing
     fromField x = Just (fromField x)
 
 -- int4[]
+instance HasPQType (V.Vector Int32) where
+  pqType _ = PQ.Oid 1007 -- INT4ARRAYOID
 instance FromField (V.Vector Int32) where
     fromField (ty, arrlength, Just bs) = unsafeDupablePerformIO $ int4vector bs arrlength
     fromField _ = throw $ ConversionError "Excepted non-null int4[]"
 
 -- float4[]
+instance HasPQType (V.Vector Float) where
+  pqType _ = PQ.Oid 1021 -- FLOAT4ARRAYOID
 instance FromField (V.Vector Float) where
     fromField (ty, arrlength, Just bs) = unsafeDupablePerformIO $ float32vector bs arrlength
     fromField _ = throw $ ConversionError "Excepted non-null float4[]"
@@ -344,8 +416,8 @@ int4vector = extractor extract_int4_array
 -------------------------------------------------------------------------------
 
 -- | Result set field
-field :: FromField a => RowParser a
-field = fieldWith fromField
+field :: (HasPQType a, FromField a) => RowParser a
+field = fieldWith checkTy fromField
 
 newtype RowParser a = RP { unRP :: (Row -> PQ.Column -> (PQ.Column, a)) }
 
@@ -369,14 +441,17 @@ instance Monad RowParser where
 runRowParser :: RowParser a -> Row -> a
 runRowParser (RP p) r = snd (p r 0)
 
-fieldWith :: FieldParser a -> RowParser a
-fieldWith fieldP = RP $ \(Row {..}) column ->
+fieldWith :: (PQ.Oid -> a -> a) -> FieldParser a -> RowParser a
+fieldWith checkTy fieldP = RP $ \(Row {..}) column ->
   let
     !result  = rowresult
     !typeOid = unsafeDupablePerformIO $ PQ.ftype result column
     !len     = unsafeDupablePerformIO $ PQ.getlength result row column
     !buffer  = unsafeDupablePerformIO $ PQ.getvalue result row column
-  in (succ column, fieldP (typeOid, calculateSize typeOid len, buffer))
+    res      = fieldP (typeOid, calculateSize typeOid len, buffer)
+  in (,) (succ column) $ case row of
+    PQ.Row 0 -> checkTy typeOid res
+    _ -> res
 
 -------------------------------------------------------------------------------
 -- Result Sets

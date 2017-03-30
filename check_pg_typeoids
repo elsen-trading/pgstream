@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+# Finds any discrepancies between the types declared in
+# src/Database/PostgreSQL/Stream/FromRow.hs and what the real ones in
+# pg_type.h are.
+
+pg_types=$(mktemp)
+master_oids=$(mktemp)
+check_oids=$(mktemp) #oids to check
+trap "rm $pg_types $master_oids $check_oids" EXIT
+# trap "echo $pg_types $master_oids $check_oids" EXIT
+curl -s https://raw.githubusercontent.com/postgres/postgres/master/src/include/catalog/pg_type.h > $pg_types
+
+grep -P "#define.*OID" $pg_types |
+  perl -pe "s/#define (\w+)\s+(\d+)/\1 \2/" |
+  sort > $master_oids
+
+grep "pqType.*=" src/Database/PostgreSQL/Stream/FromRow.hs |
+  grep -vP "Maybe|checkTy" | # cases not involving concrete types
+  perl -pe "s/.*PQ\.Oid (\d+) --\s*(\w+)/\2 \1/" |
+  sort |
+  uniq > $check_oids
+
+diff --changed-group-format='%>' --unchanged-group-format='' $master_oids $check_oids
