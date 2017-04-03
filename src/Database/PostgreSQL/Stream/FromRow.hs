@@ -105,15 +105,16 @@ type FieldParser a = (PQ.Oid, Int, Maybe ByteString) -> a
 -- sloww check for correct type. also this is too strict,
 -- e.g. Integer should accept any kind of int.
 -- TODO: Add a package-level `strict' to enable/disable this check.
-checkTy :: HasPQType a => PQ.Oid -> a -> a
-checkTy oid a = if oid `elem` pqType a then a
+checkTy :: HasPQType a => Query -> PQ.Oid -> a -> a
+checkTy q oid a = if oid `elem` pqType a then a
   else throw $
     Incompatible $
          "Type error. Expected pq typeoid "
       ++ show (pqType a)
       ++ " but got "
       ++ show oid
-      ++ "."
+      ++ ". Full query: "
+      ++ show q
 
 class HasPQType a where
   pqType :: a -> [PQ.Oid]
@@ -421,30 +422,30 @@ int4vector = extractor extract_int4_array
 field :: (HasPQType a, FromField a) => RowParser a
 field = fieldWith checkTy fromField
 
-newtype RowParser a = RP { unRP :: (Row -> PQ.Column -> (PQ.Column, a)) }
+newtype RowParser a = RP { unRP :: (Query -> Row -> PQ.Column -> (PQ.Column, a)) }
 
 instance Functor RowParser where
-  fmap f (RP p) = RP (\r c -> let (c', a) = p r c in (c', f a))
+  fmap f (RP p) = RP (\q r c -> let (c', a) = p q r c in (c', f a))
 
 instance Applicative RowParser where
   pure = return
-  (RP f) <*> (RP x) = RP $ \r c -> let
-    (!c',  f') = f r c
-    (!c'', x') = x r c'
+  (RP f) <*> (RP x) = RP $ \q r c -> let
+    (!c',  f') = f q r c
+    (!c'', x') = x q r c'
     in (c'', f' x')
 
 instance Monad RowParser where
-  return a = RP (\_ c -> (c, a))
-  (RP x) >>= f = RP $ \r c -> let
-    (!c', a) = x r c
+  return a = RP (\_ _ c -> (c, a))
+  (RP x) >>= f = RP $ \q r c -> let
+    (!c', a) = x q r c
     RP y     = f a
-    in y r c'
+    in y q r c'
 
-runRowParser :: RowParser a -> Row -> a
-runRowParser (RP p) r = snd (p r 0)
+runRowParser :: RowParser a -> Query -> Row -> a
+runRowParser (RP p) q r = snd (p q r 0)
 
-fieldWith :: (PQ.Oid -> a -> a) -> FieldParser a -> RowParser a
-fieldWith checkTy fieldP = RP $ \(Row {..}) column ->
+fieldWith :: (Query -> PQ.Oid -> a -> a) -> FieldParser a -> RowParser a
+fieldWith checkTy fieldP = RP $ \q (Row {..}) column ->
   let
     !result  = rowresult
     !typeOid = unsafeDupablePerformIO $ PQ.ftype result column
@@ -452,7 +453,7 @@ fieldWith checkTy fieldP = RP $ \(Row {..}) column ->
     !buffer  = unsafeDupablePerformIO $ PQ.getvalue result row column
     res      = fieldP (typeOid, calculateSize typeOid len, buffer)
   in (,) (succ column) $ case row of
-    PQ.Row 0 -> checkTy typeOid res
+    PQ.Row 0 -> checkTy q typeOid res
     _ -> res
 
 -------------------------------------------------------------------------------
@@ -487,7 +488,7 @@ parseRows q result = do
             {-len <- liftIO $ PQ.getlength result row c-}
             {-size <- liftIO $ PQ.fsize result c-}
             {-buffer <- liftIO $ PQ.getvalue result row c-}
-            return $ runRowParser fromRow rw
+            return $ runRowParser fromRow q rw
         return xs
 
     _ -> do
