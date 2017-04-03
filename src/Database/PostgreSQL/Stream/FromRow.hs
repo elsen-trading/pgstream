@@ -293,7 +293,10 @@ instance FromField (Fixed E2) where
 
 -- nullable
 instance HasPQType a => HasPQType (Maybe a) where
-  pqType (x :: Maybe a) = pqType (undefined :: a)
+  -- PQ.Oid 705 can be returned for NULL values where the sql
+  -- engine cannot determine its type, e.g.
+  -- `select NULL`
+  pqType (x :: Maybe a) = PQ.Oid 705 : pqType (undefined :: a)
 instance FromField a => FromField (Maybe a) where
     fromField (_, _, Nothing) = Nothing
     fromField x = Just (fromField x)
