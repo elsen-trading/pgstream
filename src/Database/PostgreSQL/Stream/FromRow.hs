@@ -41,8 +41,9 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
+import qualified BinaryParser as BP
 
-import qualified PostgreSQL.Binary.Decoder as PD
+import qualified PostgreSQL.Binary.Decoding as PD
 import qualified Database.PostgreSQL.LibPQ as PQ
 
 import Unsafe.Coerce
@@ -127,77 +128,77 @@ class HasPQType a => FromField a where
 instance HasPQType Int16 where
   pqType _ = PQ.Oid <$> [ 21 ] -- INT2OID
 instance FromField Int16 where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int2"
 
 -- int4
 instance HasPQType Int32 where
   pqType _ = PQ.Oid <$> [ 21, 23 ] -- INT2OID, INT4OID
 instance FromField Int32 where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int4"
 
 -- int8
 instance HasPQType Int64 where
   pqType _ = PQ.Oid <$> [ 21, 23, 20 ] -- INT2OID, INT4OID, INT8OID
 instance FromField Int64 where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int8"
 
 -- int8
 instance HasPQType Int where
   pqType _ = PQ.Oid <$> [ 21, 23, 20 ] -- INT2OID, INT4OID, INT8OID
 instance FromField Int where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null int4"
 
 -- float4
 instance HasPQType Float where
   pqType _ = PQ.Oid <$> [ 700 ] -- FLOAT4OID
 instance FromField Float where
-    fromField (ty, length, Just bs) = case PD.run PD.float4 bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.float4 bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null float4"
 
 -- float8
 instance HasPQType Double where
   pqType _ = PQ.Oid <$> [ 701 ] -- FLOAT8OID
 instance FromField Double where
-    fromField (ty, length, Just bs) = case PD.run PD.float8 bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.float8 bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null float8"
 
 -- integer
 instance HasPQType Integer where
   pqType _ = PQ.Oid <$> [ 21, 23, 20 ] -- INT2OID, INT4OID, INT8OID
 instance FromField Integer where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null integer"
 
 -- numeric
 instance HasPQType Scientific where
   pqType _ = PQ.Oid <$> [ 1700 ] -- NUMERICOID
 instance FromField Scientific where
-    fromField (ty, length, Just bs) = case PD.run PD.numeric bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.numeric bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null numeric"
 
 -- uuid
 instance HasPQType UUID where
   pqType _ = PQ.Oid <$> [ 2950 ] -- UUIDOID
 instance FromField UUID where
-    fromField (ty, length, Just bs) = case PD.run PD.uuid bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.uuid bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null uuid"
 
 -- char
 instance HasPQType Char where
   pqType _ = PQ.Oid <$> [ 1042 ] -- BPCHAROID
 instance FromField Char where
-    fromField (ty, length, Just bs) = case PD.run PD.char bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.char bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null char"
 
 -- text
 instance HasPQType Text where
   pqType _ = PQ.Oid <$> [ 25, 1043 ] -- TEXTOID, VARCHAROID
 instance FromField Text where
-    fromField (ty, length, Just bs) = case PD.run PD.text_strict bs of
+    fromField (ty, length, Just bs) = case BP.run PD.text_strict bs of
       Left x -> throw $ ConversionError "Malformed bytestring."
       Right x -> x
     fromField _ = throw $ ConversionError "Excepted non-null text"
@@ -205,7 +206,7 @@ instance FromField Text where
 instance HasPQType TL.Text where
   pqType _ = PQ.Oid <$> [ 25, 1043 ] -- TEXTOID, VARCHAROID
 instance FromField TL.Text where
-    fromField (ty, length, Just bs) = case PD.run PD.text_lazy bs of
+    fromField (ty, length, Just bs) = case BP.run PD.text_lazy bs of
       Left x -> throw $ ConversionError "Malformed bytestring."
       Right x -> x
     fromField _ = throw $ ConversionError "Excepted non-null text"
@@ -214,27 +215,27 @@ instance FromField TL.Text where
 instance HasPQType ByteString where
   pqType _ = PQ.Oid <$> [ 17 ] -- BYTEAOID
 instance FromField ByteString where
-    fromField (ty, length, Just bs) = case PD.run PD.bytea_strict bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.bytea_strict bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bytea"
 
 instance HasPQType BL.ByteString where
   pqType _ = PQ.Oid <$> [ 17 ] -- BYTEAOID
 instance FromField BL.ByteString where
-    fromField (ty, length, Just bs) = case PD.run PD.bytea_lazy bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.bytea_lazy bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bytea"
 
 -- bool
 instance HasPQType Bool where
   pqType _ = PQ.Oid <$> [ 16 ] -- BOOLOID
 instance FromField Bool where
-    fromField (ty, length, Just bs) = case PD.run PD.bool bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.bool bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null bool"
 
 -- date
 instance HasPQType Day where
   pqType _ = PQ.Oid <$> [ 1082 ] -- DATEOID
 instance FromField Day where
-    fromField (ty, length, Just bs) = case PD.run PD.date bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.date bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 -- time
@@ -243,37 +244,37 @@ instance FromField Day where
 instance HasPQType TimeOfDay where
   pqType _ = PQ.Oid <$> [ 1083 ] -- TIMEOID
 instance FromField TimeOfDay where
-    fromField (ty, length, Just bs) = case PD.run PD.time_int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.time_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance HasPQType (TimeOfDay, TimeZone) where
   pqType _ = PQ.Oid <$> [ 1266 ] -- TIMETZOID
 instance FromField (TimeOfDay, TimeZone) where
-    fromField (ty, length, Just bs) = case PD.run PD.timetz_int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.timetz_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance HasPQType UTCTime where
   pqType _ = PQ.Oid <$> [ 1184 ] -- TIMESTAMPTZOID
 instance FromField UTCTime where
-    fromField (ty, length, Just bs) = case PD.run PD.timestamptz_int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.timestamptz_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance HasPQType NominalDiffTime where
   pqType _ = PQ.Oid <$> [ 20 ] -- INT8OID
 instance FromField NominalDiffTime where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> (fromIntegral (x :: Int)) }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> (fromIntegral (x :: Int)) }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance HasPQType DiffTime where
   pqType _ = PQ.Oid <$> [ 1186 ] -- INTERVALOID
 instance FromField DiffTime where
-    fromField (ty, length, Just bs) = case PD.run PD.interval_int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.interval_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 instance HasPQType LocalTime where
   pqType _ = PQ.Oid <$> [ 1114 ] -- TIMESTAMPOID
 instance FromField LocalTime where
-    fromField (ty, length, Just bs) = case PD.run PD.timestamp_int bs of { Right x -> x }
+    fromField (ty, length, Just bs) = case BP.run PD.timestamp_int bs of { Right x -> x }
     fromField _ = throw $ ConversionError "Excepted non-null date"
 
 -- money
@@ -281,14 +282,14 @@ instance HasPQType (Fixed E3) where
   -- cashoid?
   pqType _ = PQ.Oid <$> [ 20 ] -- INT8OID
 instance FromField (Fixed E3) where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
     fromField _ = throw $ ConversionError "Excepted non-null money"
 
 instance HasPQType (Fixed E2) where
   -- cashoid?
   pqType _ = PQ.Oid <$> [ 20 ] -- INT8OID
 instance FromField (Fixed E2) where
-    fromField (ty, length, Just bs) = case PD.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
+    fromField (ty, length, Just bs) = case BP.run PD.int bs of { Right x -> fromIntegral (x :: Int) / 100 }
     fromField _ = throw $ ConversionError "Excepted non-null money"
 
 -- nullable

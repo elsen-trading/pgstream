@@ -53,7 +53,7 @@ import Database.PostgreSQL.Stream.FromRow
 import Database.PostgreSQL.Stream.QueryBuilder
 import Database.PostgreSQL.Stream.Connection
 
-import qualified PostgreSQL.Binary.Decoder as PD
+import qualified PostgreSQL.Binary.Decoding as PD
 import qualified Database.PostgreSQL.LibPQ as PQ
 
 import Data.Int
