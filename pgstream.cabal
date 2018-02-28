@@ -93,7 +93,7 @@ library
   ghc-options:
     -O2
     -funbox-strict-fields
-    -"-with-rtsopts=-N"
+    "-with-rtsopts=-N"
     -rtsopts
     -threaded
 
