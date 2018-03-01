@@ -51,7 +51,7 @@ import System.IO.Unsafe
 
 import Foreign.C
 import Foreign.Ptr
-import Foreign.ForeignPtr.Safe
+import Foreign.ForeignPtr
 
 -------------------------------------------------------------------------------
 -- FFI
