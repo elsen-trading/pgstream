@@ -69,12 +69,15 @@ import Data.UUID(toASCIIBytes, toWords)
 import Control.Exception as E
 import Control.Monad.Trans
 import Control.Applicative
-import Control.Monad.Trans.Resource (ResourceT, MonadBaseControl)
+import Control.Monad.Trans.Resource (ResourceT)
 
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 
 import Data.Version (showVersion)
+
+import UnliftIO (MonadUnliftIO)
+
 import qualified Paths_pgstream as Paths
 
 ver :: String
@@ -238,12 +241,12 @@ newCursor = do
   let bshow = B8.pack . show
   return $ Identifier ("cursor" <> bshow a <> bshow b <> bshow c <> bshow d)
 
-stream :: (FromRow r, ToSQL a, MonadBaseControl IO m, MonadIO m) =>
+stream :: (FromRow r, ToSQL a, MonadUnliftIO m, MonadIO m) =>
      PQ.Connection       -- ^ Connection
   -> Query               -- ^ Query
   -> a                   -- ^ Query arguments
   -> Int                 -- ^ Batch size
-  -> C.Source m [r]      -- ^ Source conduit
+  -> C.ConduitT () [r] m () -- ^ Source conduit
 stream conn q args n = do
   -- Generate a new cursor from a uuid
   cursor_name <- liftIO $ newCursor
@@ -273,11 +276,11 @@ stream conn q args n = do
         [] -> return ()
         _  -> C.yield res >> loop conn q cursor_name n
 
-stream_ :: (FromRow r, MonadBaseControl IO m, MonadIO m) =>
+stream_ :: (FromRow r, MonadUnliftIO m, MonadIO m) =>
      PQ.Connection      -- ^ Connection
   -> Query              -- ^ Query
   -> Int                -- ^ Batch size
-  -> C.Source m [r]     -- ^ Source conduit
+  -> C.ConduitT () [r] m () -- ^ Source conduit
 stream_ conn q n = stream conn q () n
 
 -- | Print a SQL query to stdout.
