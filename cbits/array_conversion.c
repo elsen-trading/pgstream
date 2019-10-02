@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <arpa/inet.h>
-#include <postgresql/libpq-fe.h>
+#include <libpq-fe.h>
 
 #define INT4OID      23
 #define FLOAT4OID    700
